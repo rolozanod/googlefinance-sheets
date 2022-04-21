@@ -1,5 +1,7 @@
 # py
 
+__version__ = 'dev'
+
 import pandas as pd
 
 from googleapiclient.discovery import build
