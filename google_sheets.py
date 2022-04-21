@@ -1,41 +1,6 @@
-# # TODO: Replace token.pickle when changing scopes
-# # https://developers.google.com/identity/protocols/oauth2/scopes#drive
-
-# # py
-
-from __future__ import print_function
-
-from pathlib import Path
-
-from os import getcwd, environ
-
-import os.path
-
-from dotenv import load_dotenv
-
-# This is not needed if loaded within the Docker container
-# print([f for f in os.listdir(os.path.join(Path(), "../../.devcontainer/"))])
-# load_dotenv(dotenv_path=os.path.join(Path(), "../../.devcontainer/devcontainer.env"))
-
-from logging import error
-
-import pickle
-
-import time
-
-from datetime import datetime
-
-from pandas._libs import missing
-
-from sqlalchemy import create_engine
-
-import psycopg2
+# py
 
 import pandas as pd
-
-from numpy import ceil, nan
-
-import json
 
 from googleapiclient.discovery import build
 
@@ -45,36 +10,41 @@ from google.auth.transport.requests import Request
 
 from google.cloud import storage, bigquery
 
+from logging import error
+
+import pickle
+
+import time
+
+from datetime import datetime
+
+from math import ceil
+
 from dateutil.relativedelta import relativedelta
 
-try:
-    path2json_creds = os.path.join(Path('../'), environ["credentials_path"], environ["GOOGLE_DRIVE_CREDENTIALS"])
-    path2json_apps = os.path.join(Path('../'), environ["credentials_path"], environ["GOOGLE_SERVICE_CREDENTIALS"])
-    gcp_config_path = os.path.join(Path('../'), environ['gcp_path'])
-    with open(os.path.join(gcp_config_path, 'google_apis_config.json'), 'rb') as scopes_file:
-        gcp_config = json.load(scopes_file)
+from pathlib import Path
 
-except(FileNotFoundError):
-    path2json_creds = os.path.join(Path('/content'), environ["credentials_path"], environ["GOOGLE_DRIVE_CREDENTIALS"])
-    path2json_apps = os.path.join(Path('/content'), environ["credentials_path"], environ["GOOGLE_SERVICE_CREDENTIALS"])
-    gcp_config_path = os.path.join(Path('/content'), environ['gcp_path'])
-    with open(os.path.join(gcp_config_path, 'google_apis_config.json'), 'rb') as scopes_file:
-        gcp_config = json.load(scopes_file)
+import os
 
-os.environ.update({'GOOGLE_APPLICATION_CREDENTIALS': path2json_apps})
+import json
 
-SCOPES = gcp_config["SCOPES"]
+# Scopes needed in GCP to perform actions in spreadsheets, consequently drive is included.
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
 
-mimes = gcp_config["mimes"]
+# Mimes to allow the exploration of folders and manipulation of spreadsheets
+mimes = {"folder": "application/vnd.google-apps.folder","sheet": "application/vnd.google-apps.spreadsheet"}
 
-max_rows_in_sheet = gcp_config["max_rows_in_sheet"]
+# Max rows allows per sheet (google sheets limit!)
+max_rows_in_sheet = 500
+
 
 def get_env_vars(var: str, envvar: str):
 
     if var is None:
-        return environ[envvar]
+        return os.environ[envvar]
     else:
         return var
+
 
 def robust_dict_keys(d: dict, k, inverse=False):
     if inverse:
@@ -84,9 +54,10 @@ def robust_dict_keys(d: dict, k, inverse=False):
     else:
         return d[k]
 
-def google_api_creds(path2json_creds: str = path2json_creds, SCOPES: list=SCOPES, gcp_config_path: str=gcp_config_path):
+
+def google_api_creds(path2json_creds: str, gcp_config_path: str, SCOPES: list=SCOPES):
     """Shows basic usage of the Drive v3 API.
-    Prints the names and ids of the first 10 files the user has access to.
+    Retrns the credentials of the user to access its GCP resources.
     """
     redefine_creds = False
     creds = None
@@ -126,9 +97,10 @@ def google_api_creds(path2json_creds: str = path2json_creds, SCOPES: list=SCOPES
 
     return creds
 
-def view_folder(parent_id: str = None):
 
-    creds = google_api_creds()
+def view_folder(parent_id: str = None, path2json_creds: str, gcp_config_path: str):
+
+    creds = google_api_creds(path2json_creds, gcp_config_path)
 
     assert creds is not None
 
@@ -161,11 +133,12 @@ def view_folder(parent_id: str = None):
         for item in items:
             print(u'{0}: {1} ({2})'.format(robust_dict_keys(mimes, item['mimeType'], inverse=True), item['name'], item['id']))
 
-def create_folder(name: str, parent_id: list=[]):
+
+def create_folder(name: str, parent_id: list=[], path2json_creds: str, gcp_config_path: str):
 
     # id = token_hex(12)
 
-    creds = google_api_creds()
+    creds = google_api_creds(path2json_creds, gcp_config_path)
 
     assert creds is not None
 
@@ -194,9 +167,10 @@ def create_folder(name: str, parent_id: list=[]):
     with open(os.path.join(gcp_config_path, 'GMAP_DRIVE_MAP.pickle'), 'wb') as drive_map:
         pickle.dump(drive_ids, drive_map)
 
-def create_sheet(name: str, parent_id: list=[]):
 
-    creds = google_api_creds()
+def create_sheet(name: str, parent_id: list=[], path2json_creds: str, gcp_config_path: str):
+
+    creds = google_api_creds(path2json_creds, gcp_config_path)
 
     assert creds is not None
 
@@ -225,11 +199,12 @@ def create_sheet(name: str, parent_id: list=[]):
     with open(os.path.join(gcp_config_path, 'GMAP_DRIVE_MAP.pickle'), 'wb') as drive_map:
         pickle.dump(drive_ids, drive_map)
 
-def write_stock_data(fileId: str, tkr: str, initial_date: str, final_date: str):
+
+def write_stock_data(fileId: str, tkr: str, initial_date: str, final_date: str, path2json_creds: str, gcp_config_path: str):
 
     sheet_formula_str = """=GOOGLEFINANCE("{tkr}", "all", DATE({i_dt}), DATE({f_dt}), "DAILY")"""
 
-    creds = google_api_creds()
+    creds = google_api_creds(path2json_creds, gcp_config_path)
 
     assert creds is not None
 
@@ -256,9 +231,10 @@ def write_stock_data(fileId: str, tkr: str, initial_date: str, final_date: str):
         )
     response = request.execute()
 
-def read_stock_data(fileId: str):
 
-    creds = google_api_creds()
+def read_stock_data(fileId: str, path2json_creds: str, gcp_config_path: str):
+
+    creds = google_api_creds(path2json_creds, gcp_config_path)
 
     assert creds is not None
 
@@ -274,9 +250,8 @@ def read_stock_data(fileId: str):
     else:
         return values
 
+
 def generate_sheets_references(tkr: list, initial_date: str, final_date: str):
-    
-    # max_rows_in_sheet=1000
 
     max_cols_in_sheet=26
 
@@ -310,14 +285,11 @@ def generate_sheets_references(tkr: list, initial_date: str, final_date: str):
             )
 
         n_row += 1
-
-    # sheets_reference_structure = [chr(ord('a') + c*6).upper() + str(r*33 + 1) for c in range(int(26/6)) for r in range(int(max_rows_in_sheet/33))]
-
-    # sheets_reference_ranges = [chr(ord('a') + c*6).upper() + str(r*33 + 1) + ":" + chr(ord('a') + (c+1)*6 - 1).upper() + str((r+1)*33) for c in range(int(26/6)) for r in range(int(max_rows_in_sheet/33))]
     
     return sheets_reference_structure, sheets_reference_ranges
 
-def batch_write_stock_data(fileId: str, tkr: list, initial_date: str, final_date: str):
+
+def batch_write_stock_data(fileId: str, tkr: list, initial_date: str, final_date: str, path2json_creds: str, gcp_config_path: str):
 
     sheet_formula_str = """=GOOGLEFINANCE("{tkr}", "all", DATE({i_dt}), DATE({f_dt}), "DAILY")"""
 
@@ -327,7 +299,7 @@ def batch_write_stock_data(fileId: str, tkr: list, initial_date: str, final_date
         final_date=final_date
         )
 
-    creds = google_api_creds()
+    creds = google_api_creds(path2json_creds, gcp_config_path)
 
     assert creds is not None
 
@@ -372,7 +344,8 @@ def batch_write_stock_data(fileId: str, tkr: list, initial_date: str, final_date
 
     return values
 
-def batch_read_stock_data(fileId: str, tkr: list, initial_date: str, final_date: str):
+
+def batch_read_stock_data(fileId: str, tkr: list, initial_date: str, final_date: str, path2json_creds: str, gcp_config_path: str):
 
     _, sheets_reference_ranges = generate_sheets_references(
         tkr=tkr,
@@ -380,7 +353,7 @@ def batch_read_stock_data(fileId: str, tkr: list, initial_date: str, final_date:
         final_date=final_date
         )
 
-    creds = google_api_creds()
+    creds = google_api_creds(path2json_creds, gcp_config_path)
 
     assert creds is not None
 
@@ -399,12 +372,8 @@ def batch_read_stock_data(fileId: str, tkr: list, initial_date: str, final_date:
     else:
         return values
 
-def google_finance_stocks(
-    fileId: str,
-    tkr: list,
-    initial_date: str,
-    final_date: str
-    ):
+
+def google_finance_stocks(fileId: str, tkr: list, initial_date: str, final_date: str, path2json_creds: str, gcp_config_path: str):
 
     sheets_reference_structure, _ = generate_sheets_references(
         tkr=tkr,
@@ -424,7 +393,9 @@ def google_finance_stocks(
             fileId=fileId,
             tkr=tkrs,
             initial_date=initial_date,
-            final_date=final_date
+            final_date=final_date,
+            path2json_creds=path2json_creds,
+            gcp_config_path=gcp_config_path
             )
 
         time.sleep(3)
@@ -433,7 +404,9 @@ def google_finance_stocks(
             fileId=fileId,
             tkr=tkrs,
             initial_date=initial_date,
-            final_date=final_date
+            final_date=final_date,
+            path2json_creds=path2json_creds,
+            gcp_config_path=gcp_config_path
             )
 
         errors = []
@@ -468,7 +441,7 @@ def google_finance_stocks(
 
         for c in stocks.columns:
             if c not in ['Date', 'Stock']:
-                stocks[c] = pd.to_numeric(stocks[c].replace("#N/A", nan))
+                stocks[c] = pd.to_numeric(stocks[c].replace("#N/A", None))
 
         return stocks
 
@@ -476,9 +449,10 @@ def google_finance_stocks(
 
         return pd.DataFrame()
 
-def delete_file(fileId):
 
-    creds = google_api_creds()
+def delete_file(fileId, path2json_creds: str, gcp_config_path: str):
+
+    creds = google_api_creds(path2json_creds, gcp_config_path)
 
     assert creds is not None
 
@@ -500,6 +474,7 @@ def delete_file(fileId):
     with open(os.path.join(gcp_config_path, 'GMAP_DRIVE_MAP.pickle'), 'wb') as drive_map:
         pickle.dump(drive_ids, drive_map)
 
+
 def view_drive_map(return_: bool = False):
     with open(os.path.join(gcp_config_path, 'GMAP_DRIVE_MAP.pickle'), 'rb') as drive_map:
         drive_ids = pickle.load(drive_map)
@@ -512,81 +487,15 @@ def view_drive_map(return_: bool = False):
 
         print(drive_ids)
 
-def save_stocks2pgs(df: pd.DataFrame, table: str = None, db: str = None, usr: str = None, pwd: str = None, inst: str = None, port: str = None, replace=False):
 
-    inst = get_env_vars(var=inst, envvar='PSG_instance')
-    port = get_env_vars(var=port, envvar='PSG_localport')
-    table = get_env_vars(var=table, envvar='PSG_FINRL_TABLE')
-    db = get_env_vars(var=db, envvar='PSG_DB')
-    usr = get_env_vars(var=usr, envvar='PSG_USR')
-    pwd = get_env_vars(var=pwd, envvar='PSG_PWD')
-    
-    engine = create_engine('postgresql://{usr}:{pwd}@{inst}:{port}/{db}'.format(usr=usr, pwd=pwd, inst=inst, port=port, db=db))
-
-    try:
-
-        con = engine.connect()    
-
-    except(psycopg2.OperationalError):
-
-        raise(psycopg2.OperationalError)
-
-    if replace:
-
-        df.to_sql(table, con, if_exists="replace", index=False)
-
-        print('Table replaced with {} entries'.format(len(df)))
-
-    else:
-
-        existing_entries = pd.read_sql_query(sql="""SELECT DISTINCT "Date", "Stock" FROM {tbl} ORDER BY "Stock", "Date";""".format(tbl=table), con=con)
-
-        existing_entries['IDX'] = existing_entries.apply(lambda r: tuple([r['Date'], r['Stock']]), axis=1)
-
-        current_entries = df.apply(lambda r: tuple([r['Date'], r['Stock']]), axis=1)
-
-        new_entries = df.loc[~current_entries.isin(existing_entries.IDX)].drop_duplicates().reset_index(drop=True)
-
-        if not new_entries.empty:
-
-            new_entries.to_sql(table, con, if_exists="append", index=False)
-
-            print('{} new entries saved'.format(len(new_entries)))
-
-        else:
-
-            print('No new entries')
-
-    con.close()
-
-    return 200
-
-def load_stocks2pgs(table: str = None, db: str = None, usr: str = None, pwd: str = None, fields: str = "*", conds: str = "", inst: str = None, port: str  = None):
-
-    inst = get_env_vars(var=inst, envvar='PSG_instance')
-    port = get_env_vars(var=port, envvar='PSG_localport')
-    table = get_env_vars(var=table, envvar='PSG_FINRL_TABLE')
-    db = get_env_vars(var=db, envvar='PSG_DB')
-    usr = get_env_vars(var=usr, envvar='PSG_USR')
-    pwd = get_env_vars(var=pwd, envvar='PSG_PWD')
-    
-    engine = create_engine('postgresql://{usr}:{pwd}@{inst}:{port}/{db}'.format(usr=usr, pwd=pwd, inst=inst, port=port, db=db))
-    
-    con = engine.connect()
-
-    existing_entries = pd.read_sql_query(sql="""SELECT {flds} FROM {tbl} {conds} ORDER BY "Stock", "Date";""".format(tbl=table, flds=fields, conds=conds), con=con)
-
-    con.close()
-
-    return existing_entries
-
-# TODO: Program full procedure to upload data to GCP
-# Check current stocks (IDEA: use gs_stocks function bellow)
 # DONE: Upload blob
 # DONE: Move to Bigtable
 # DONE: Delete blob
+# DONE: Check current state of stocks in GCP
+# DONE: Program full procedure to upload data to GCP
 
-def upload_stocks2blob(stocks_df: pd.DataFrame):
+
+def upload_stocks2blob(bucket_name: str, table_id: str, stocks_df: pd.DataFrame):
     """Uploads a file to the bucket."""
     # bucket_name = "your-bucket-name"
     # source_file_name = "local/path/to/file"
@@ -596,9 +505,12 @@ def upload_stocks2blob(stocks_df: pd.DataFrame):
         os.makedirs('__temp__')
     stocks_df.to_csv(source_file_name)
 
+    # table_id = os.environ['GCP_STOCK_TABLE']
+    # bucket_name = os.environ['GCP_STOCK_BUCKET']
+
     storage_client = storage.Client()
-    bucket = storage_client.bucket(environ['GCP_STOCK_BUCKET'])
-    blob = bucket.blob(environ['GCP_STOCK_TABLE'])
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(table_id)
 
     blob.upload_from_filename(source_file_name)
 
@@ -606,11 +518,12 @@ def upload_stocks2blob(stocks_df: pd.DataFrame):
 
     print(
         "File {} uploaded to {}.".format(
-            source_file_name, environ['GCP_STOCK_TABLE']
+            source_file_name, table_id
         )
     )
 
-def download_blob(source_blob_name, destination_file_name):
+
+def download_blob(bucket_name: str, source_blob_name: str, destination_file_name: str):
     """Downloads a blob from the bucket."""
     # bucket_name = "your-bucket-name"
     # source_blob_name = "storage-object-name"
@@ -618,7 +531,9 @@ def download_blob(source_blob_name, destination_file_name):
 
     storage_client = storage.Client()
 
-    bucket = storage_client.bucket(environ['GCP_STOCK_BUCKET'])
+    # bucket_name = os.environ['GCP_STOCK_BUCKET']
+
+    bucket = storage_client.bucket(bucket_name)
 
     # Construct a client side representation of a blob.
     # Note `Bucket.blob` differs from `Bucket.get_blob` as it doesn't retrieve
@@ -633,16 +548,17 @@ def download_blob(source_blob_name, destination_file_name):
         )
     )
 
-def gs_stocks(fields:str = "*", conds:str = "", stocks_df = True):
+
+def gs_stocks(bucket_name:str, table_id:str, fields:str = "*", conds:str = "", stocks_df = True):
     # Construct a BigQuery client object.
     client = bigquery.Client()
 
-    table_id = environ['GCP_STOCK_TABLE']
+    # table_id = os.environ['GCP_STOCK_TABLE']
 
     # Configure the external data source and query job.
     external_config = bigquery.ExternalConfig("CSV")
     external_config.source_uris = [
-        "gs://finrl_rlws/stocks"
+        f"gs://{bucket_name}/{table_id}"
     ]
     external_config.schema = [
         bigquery.SchemaField("IDX", "NUMERIC"),
@@ -673,16 +589,17 @@ def gs_stocks(fields:str = "*", conds:str = "", stocks_df = True):
 
     return stocks
 
-def sql_stocks(query):
+
+def sql_stocks(bucket_name:str, table_id:str, query: str):
     # Construct a BigQuery client object.
     client = bigquery.Client()
 
-    table_id = environ['GCP_STOCK_TABLE']
+    # table_id = os.environ['GCP_STOCK_TABLE']
 
     # Configure the external data source and query job.
     external_config = bigquery.ExternalConfig("CSV")
     external_config.source_uris = [
-        "gs://finrl_rlws/stocks"
+        f"gs://{bucket_name}/{table_id}"
     ]
     external_config.schema = [
         bigquery.SchemaField("IDX", "NUMERIC"),
@@ -701,30 +618,24 @@ def sql_stocks(query):
 
     return query_job
 
+
 def retrieve_stocks(
     fileId: str,
     tkr: list,
     initial_date: str,
     final_date: str,
-    GCP=False,
-    table: str=None, db: str=None, usr: str=None, pwd: str=None, fields: str = "*", conds: str = "", inst: str=None, port: str=None):
+    bucket_name: str,
+    table_id: str
+    ):
 
     open_final_date = str(datetime.strptime(final_date, "%Y,%m,%d") + relativedelta(days=1)).split(" ")[0]
 
-    if GCP:
-        conds = '''WHERE DATE(Date) >= "{i_dt}" AND DATE(Date) <= "{f_dt}" aND Stock in ({stocks})'''.format(
-            i_dt=initial_date.replace(",", "-")[:10],
-            f_dt=open_final_date.replace(",", "-")[:10],
-            stocks="'" + "', '".join(tkr) + "'")
+    conds = '''WHERE DATE(Date) >= "{i_dt}" AND DATE(Date) <= "{f_dt}" AND Stock in ({stocks})'''.format(
+        i_dt=initial_date.replace(",", "-")[:10],
+        f_dt=open_final_date.replace(",", "-")[:10],
+        stocks="'" + "', '".join(tkr) + "'")
 
-        stocks = gs_stocks(fields=fields, conds=conds)
-    else:
-        conds = """WHERE "Date" >= '{i_dt}' AND "Date" <= '{f_dt}' AND "Stock" in ({stocks})""".format(
-            i_dt=initial_date.replace(",", "/"),
-            f_dt=open_final_date.replace(",", "/"),
-            stocks="'" + "', '".join(tkr) + "'")
-
-        stocks = load_stocks2pgs(fields=fields, conds=conds)
+    stocks = gs_stocks(bucket_name=bucket_name, table_id=table_id, fields=fields, conds=conds)
 
     existing_entries = stocks[["Date", "Stock"]].drop_duplicates()
 
@@ -837,7 +748,9 @@ def retrieve_stocks(
                                 fileId=fileId,
                                 tkr=missing_stocks,
                                 initial_date=start_date,
-                                final_date=end_date
+                                final_date=end_date,
+                                path2json_creds=path2json_creds,
+                                gcp_config_path=gcp_config_path
                                 )
 
                             if goog_stocks is not None:
@@ -848,18 +761,10 @@ def retrieve_stocks(
 
                             if not stocks.empty:
 
-                                # try:
-
-                                #     save_stocks2pgs(df=stocks, table=table, db=db, usr=usr, pwd=pwd, inst=inst, port=port, replace=False)
-
-                                # except(psycopg2.OperationalError) as e:
-
-                                #     print(e)
-
-                                if GCP:
-
-                                    upload_stocks2blob(stocks_df=stocks)
+                                upload_stocks2blob(bucket_name=bucket_name, table_id=table_id, stocks_df=stocks)
 
     print('Done')
 
     return stocks.sort_values(["Stock", "Date"])
+
+# END

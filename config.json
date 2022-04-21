@@ -1,0 +1,6 @@
+{
+    "GCP_STOCK_BUCKET":"{bucket_name}",
+    "GCP_STOCK_TABLE":"{table_name}",
+    "GOOGLE_SERVICE_CREDENTIALS":"{service_key_json}",
+    "GOOGLE_DRIVE_CREDENTIALS":"{client_secret_json}"
+}
