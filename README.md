@@ -13,6 +13,8 @@ pip install -U pip setuptools
 
 ### Install locally
 pip install -e .[dev]
+#### Test locally
+python3 -c "import gfs"
 
 # TODO: Continue on Step 6
 https://github.com/MichaelKim0407/tutorial-pip-package
