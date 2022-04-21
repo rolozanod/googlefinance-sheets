@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 from __init__ import __version__
 
@@ -17,7 +17,7 @@ setup(
     author='Rodrigo Lozano',
     author_email='rolozanod@gmail.com',
 
-    packages=['gfs'],
+    packages=find_packages(),
     install_requires=[
         'pandas',
         'google-api-core',
