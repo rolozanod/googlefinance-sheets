@@ -469,7 +469,7 @@ def delete_file(fileId: str, path2json_creds: str, gcp_config_path: str):
         pickle.dump(drive_ids, drive_map)
 
 
-def view_drive_map(return_: bool = False):
+def view_drive_map(gcp_config_path: str, return_: bool = False):
     with open(os.path.join(gcp_config_path, 'GMAP_DRIVE_MAP.pickle'), 'rb') as drive_map:
         drive_ids = pickle.load(drive_map)
 
