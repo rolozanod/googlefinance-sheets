@@ -22,11 +22,7 @@ from math import ceil
 
 from dateutil.relativedelta import relativedelta
 
-from pathlib import Path
-
 import os
-
-import json
 
 # Scopes needed in GCP to perform actions in spreadsheets, consequently drive is included.
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
@@ -766,5 +762,6 @@ def retrieve_stocks(
     print('Done')
 
     return stocks.sort_values(["Stock", "Date"])
+
 
 # END

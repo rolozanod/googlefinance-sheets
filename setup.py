@@ -10,5 +10,5 @@ setup(
     author='Rodrigo Lozano',
     author_email='rolozanod@gmail.com',
 
-    py_modules=['google_sheets'],
+    py_modules=['google_sheets','pandas','googleapiclient','google_auth_oauthlib','google','google','logging','pickle','time','datetime','math','dateutil'],
 )
