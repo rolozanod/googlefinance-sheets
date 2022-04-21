@@ -444,7 +444,7 @@ def google_finance_stocks(fileId: str, tkr: list, initial_date: str, final_date:
         return pd.DataFrame()
 
 
-def delete_file(fileId, path2json_creds: str, gcp_config_path: str):
+def delete_file(fileId: str, path2json_creds: str, gcp_config_path: str):
 
     creds = google_api_creds(path2json_creds, gcp_config_path)
 
@@ -620,6 +620,8 @@ def retrieve_stocks(
     final_date: str,
     bucket_name: str,
     table_id: str
+    path2json_creds: str,
+    gcp_config_path: str
     ):
 
     open_final_date = str(datetime.strptime(final_date, "%Y,%m,%d") + relativedelta(days=1)).split(" ")[0]
