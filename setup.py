@@ -30,6 +30,29 @@ setup(
         'google-cloud-core',
         'google-cloud-storage'
         ],
+
+    extra_sql=[
+        'sqlalchemy',
+        'psycopg2'
+    ]
+
+    extra_dev=[
+        *extra_sql,
+        'jupyter',
+        'ipykernel',
+        'click',
+        'black',
+        'lint',
+        'pytest',
+        'pytest-cov',
+    ]
+
+    extras_require={
+        'sql': extra_sql,
+
+        'dev': extra_dev,
+    },
+
     project_urls = {
         "Bug Tracker": "https://github.com/rolozanod/googlefinance-sheets/issues"
     },
