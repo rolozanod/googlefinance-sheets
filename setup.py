@@ -5,6 +5,21 @@ from __init__ import __version__
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+extra_sql=[
+    'sqlalchemy'
+]
+
+extra_dev=[
+    *extra_sql,
+    'jupyter',
+    'ipykernel',
+    'click',
+    'black',
+    'lint',
+    'pytest',
+    'pytest-cov',
+]
+
 setup(
     name='googlefinance_sheets',
     version=__version__,
@@ -30,22 +45,6 @@ setup(
         'google-cloud-core',
         'google-cloud-storage'
         ],
-
-    extra_sql=[
-        'sqlalchemy',
-        'psycopg2'
-    ]
-
-    extra_dev=[
-        *extra_sql,
-        'jupyter',
-        'ipykernel',
-        'click',
-        'black',
-        'lint',
-        'pytest',
-        'pytest-cov',
-    ]
 
     extras_require={
         'sql': extra_sql,
