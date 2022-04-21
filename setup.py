@@ -1,9 +1,9 @@
 from setuptools import setup
 
-from my_pip_package import __version__
+from google_sheets import __version__
 
 setup(
-    name='googlefinance-sheets',
+    name='googlefinance_sheets',
     version=__version__,
 
     url='https://github.com/rolozanod/googlefinance-sheets',

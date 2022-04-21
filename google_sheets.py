@@ -96,7 +96,7 @@ def google_api_creds(path2json_creds: str, gcp_config_path: str, SCOPES: list=SC
     return creds
 
 
-def view_folder(parent_id: str = None, path2json_creds: str, gcp_config_path: str):
+def view_folder(path2json_creds: str, gcp_config_path: str, parent_id: str = None):
 
     creds = google_api_creds(path2json_creds, gcp_config_path)
 
@@ -132,7 +132,7 @@ def view_folder(parent_id: str = None, path2json_creds: str, gcp_config_path: st
             print(u'{0}: {1} ({2})'.format(robust_dict_keys(mimes, item['mimeType'], inverse=True), item['name'], item['id']))
 
 
-def create_folder(name: str, parent_id: list=[], path2json_creds: str, gcp_config_path: str):
+def create_folder(path2json_creds: str, gcp_config_path: str, name: str, parent_id: list=[]):
 
     # id = token_hex(12)
 
@@ -166,7 +166,7 @@ def create_folder(name: str, parent_id: list=[], path2json_creds: str, gcp_confi
         pickle.dump(drive_ids, drive_map)
 
 
-def create_sheet(name: str, parent_id: list=[], path2json_creds: str, gcp_config_path: str):
+def create_sheet(path2json_creds: str, gcp_config_path: str, name: str, parent_id: list=[]):
 
     creds = google_api_creds(path2json_creds, gcp_config_path)
 
@@ -198,7 +198,7 @@ def create_sheet(name: str, parent_id: list=[], path2json_creds: str, gcp_config
         pickle.dump(drive_ids, drive_map)
 
 
-def write_stock_data(fileId: str, tkr: str, initial_date: str, final_date: str, path2json_creds: str, gcp_config_path: str):
+def write_stock_data(path2json_creds: str, gcp_config_path: str, fileId: str, tkr: str, initial_date: str, final_date: str):
 
     sheet_formula_str = """=GOOGLEFINANCE("{tkr}", "all", DATE({i_dt}), DATE({f_dt}), "DAILY")"""
 
