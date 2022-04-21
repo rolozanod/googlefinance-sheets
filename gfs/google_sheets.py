@@ -1,7 +1,5 @@
 # py
 
-__version__ = 'dev'
-
 import pandas as pd
 
 from googleapiclient.discovery import build
@@ -11,8 +9,6 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
 from google.cloud import storage, bigquery
-
-from logging import error
 
 import pickle
 
