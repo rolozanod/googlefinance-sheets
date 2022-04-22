@@ -619,7 +619,7 @@ def retrieve_stocks(
     initial_date: str,
     final_date: str,
     bucket_name: str,
-    table_id: str
+    table_id: str,
     path2json_creds: str,
     gcp_config_path: str
     ):
