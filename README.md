@@ -12,7 +12,10 @@ source .VENV/bin/activate
 pip install -U pip setuptools
 
 ### Install locally
+-Using setuptools with setup file
 pip install -e .[dev]
+-Using build with toml file and setup file
+python -m build
 #### Test locally
 python3 -c "import gfs"
 
