@@ -1,7 +1,9 @@
 # googlefinance-sheets
 Repo to retrieve historical financial data from Google Finance using a Google Cloud Computing account connection to the Sheets app.
 
-A *Google Cloud Platform account* with a *project* enabled to *manipulate Google Sheets in the Google Drive* is needed.
+A **Google Cloud Platform account** with a **project** enabled to **manipulate Google Sheets in the Google Drive** is needed.
+
+Developed by (Rodrigo Lozano)[https://rolozanod.github.io/]
 
 TODO:
 - Send the project to PyPi
