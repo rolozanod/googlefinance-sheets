@@ -22,6 +22,8 @@ from dateutil.relativedelta import relativedelta
 
 import os
 
+import json
+
 # Scopes needed in GCP to perform actions in spreadsheets, consequently drive is included.
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
 
@@ -502,7 +504,7 @@ def upload_stocks2blob(bucket_name: str, table_id: str, stocks_df: pd.DataFrame)
     # table_id = os.environ['GCP_STOCK_TABLE']
     # bucket_name = os.environ['GCP_STOCK_BUCKET']
 
-    storage_client = storage.Client()
+    storage_client = storage.Client.from_service_account_json(path2json_creds)
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(table_id)
 
@@ -523,7 +525,7 @@ def download_blob(bucket_name: str, source_blob_name: str, destination_file_name
     # source_blob_name = "storage-object-name"
     # destination_file_name = "local/path/to/file"
 
-    storage_client = storage.Client()
+    storage_client = storage.Client.from_service_account_json(path2json_creds)
 
     # bucket_name = os.environ['GCP_STOCK_BUCKET']
 
@@ -543,9 +545,10 @@ def download_blob(bucket_name: str, source_blob_name: str, destination_file_name
     )
 
 
-def gs_stocks(bucket_name:str, table_id:str, fields:str = "*", conds:str = "", stocks_df = True):
+def gs_stocks(path2json_creds:str, bucket_name:str, table_id:str, fields:str = "*", conds:str = "", stocks_df = True):
+
     # Construct a BigQuery client object.
-    client = bigquery.Client()
+    client = bigquery.Client.from_service_account_json(path2json_creds)
 
     # table_id = os.environ['GCP_STOCK_TABLE']
 
@@ -584,9 +587,10 @@ def gs_stocks(bucket_name:str, table_id:str, fields:str = "*", conds:str = "", s
     return stocks
 
 
-def sql_stocks(bucket_name:str, table_id:str, query: str):
+def sql_stocks(path2json_creds:str, bucket_name:str, table_id:str, query: str):
+
     # Construct a BigQuery client object.
-    client = bigquery.Client()
+    client = bigquery.Client.from_service_account_json(path2json_creds)
 
     # table_id = os.environ['GCP_STOCK_TABLE']
 
@@ -631,7 +635,7 @@ def retrieve_stocks(
         f_dt=open_final_date.replace(",", "-")[:10],
         stocks="'" + "', '".join(tkr) + "'")
 
-    stocks = gs_stocks(bucket_name=bucket_name, table_id=table_id, fields=fields, conds=conds)
+    stocks = gs_stocks(path2json_creds=path2json_creds, bucket_name=bucket_name, table_id=table_id, fields="*", conds=conds)
 
     existing_entries = stocks[["Date", "Stock"]].drop_duplicates()
 

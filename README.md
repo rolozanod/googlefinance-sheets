@@ -16,6 +16,7 @@ pip install -U pip setuptools
 pip install -e .[dev]
 -Using build with toml file and setup file
 python -m build
+python3 -m pip install dist/googlefinance_sheets-0.0.1.tar.gz
 #### Test locally
 python3 -c "import gfs"
 
