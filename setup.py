@@ -33,6 +33,7 @@ setup(
     author_email='rolozanod@gmail.com',
 
     packages=find_packages(),
+    # packages=['gfs'],
     install_requires=[
         'pandas',
         'google-api-core',
