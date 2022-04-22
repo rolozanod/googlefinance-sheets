@@ -3,7 +3,7 @@ Repo to retrieve historical financial data from Google Finance using a Google Cl
 
 ***REQUIREMENTS!*** A **Google Cloud Platform account** with a **project** enabled to **manipulate Google Sheets in Google Drive** is needed.
 
-Developed by ![Rodrigo Lozano](https://rolozanod.github.io/)
+Developed by [Rodrigo Lozano](https://rolozanod.github.io/ "Developer personal webpage")
 
 TODO:
 - Send the project to PyPi
