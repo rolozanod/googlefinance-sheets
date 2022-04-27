@@ -16,17 +16,16 @@ If you do not have a GCP account, [create one now](https://console.cloud.google.
 GCP organizes resources into projects. [Create one now](https://console.cloud.google.com/projectcreate "Project creation link in GCP").
 
 ## CREATE A SERVICE ACCOUNT
-[Configure one now](https://console.cloud.google.com/apis/credentials/serviceaccountkey "Service account creation link in GCP") for the project you just created.
-
 This serivce account will enable
 - Terraform create the architecture needed for the project
 - Python access the resources in GCP needed for the package to work
+
+[Configure one now](https://console.cloud.google.com/apis/credentials/serviceaccountkey "Service account creation link in GCP") for the project you just created.
 
 1. Create the service account with "Editor" role.
 1. Create a new key
     - Under the service account key got to the "Keys" tab and select "Create new key" with JSON "Key Type".
 1. Download the service account key.
-    
 
 Read more about service account keys in [Google's documentation](https://cloud.google.com/iam/docs/creating-managing-service-account-keys).
 
