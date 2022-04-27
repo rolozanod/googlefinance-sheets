@@ -17,13 +17,16 @@ GCP organizes resources into projects. [Create one now](https://console.cloud.go
 
 ## CREATE A SERVICE ACCOUNT
 [Configure one now](https://console.cloud.google.com/apis/credentials/serviceaccountkey "Service account creation link in GCP")
+
 This serivce account will enable
 - Terraform create the architecture needed for the project
 - Python access the resources in GCP needed for the package to work
 
 ## DEPLOY WITH TERRAFORM
 https://learn.hashicorp.com/tutorials/terraform/google-cloud-platform-build
+
 https://cloud.google.com/docs/terraform/get-started-with-terraform
+
 https://cloud.google.com/docs/terraform
 
 # COLABORATING
