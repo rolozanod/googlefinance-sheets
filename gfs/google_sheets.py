@@ -627,6 +627,18 @@ def retrieve_stocks(
     path2json_creds: str,
     gcp_config_path: str
     ):
+    """
+    Main function that retrieves financial data from Google Finance
+
+    fileId: str - 
+    tkr: list - list of tickers (stocks, indexes, forex) named exactly as found in Google Finance.
+    initial_date: str - initial date formated as "%Y,%m,%d" to retrieve data
+    final_date: str - final date formated as "%Y,%m,%d" to retrieve data
+    bucket_name: str - name of the bucket that stores the data already retrieved
+    table_id: str - name of the table in bigquery used to place the job to retrieve data
+    path2json_creds: str - path to the json file with the service key
+    gcp_config_path: str - path that contains the drive map, scopes, and token pickle files.
+    """
 
     open_final_date = str(datetime.strptime(final_date, "%Y,%m,%d") + relativedelta(days=1)).split(" ")[0]
 
