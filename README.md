@@ -22,6 +22,12 @@ This serivce account will enable
 - Terraform create the architecture needed for the project
 - Python access the resources in GCP needed for the package to work
 
+1. Create the service account with "Editor" role.
+1. Create a new key
+    - Under the service account key got to the "Keys" tab and select "Create new key" with JSON "Key Type".
+1. Download the service account key.
+    
+
 Read more about service account keys in [Google's documentation](https://cloud.google.com/iam/docs/creating-managing-service-account-keys).
 
 ## DEPLOY WITH TERRAFORM
