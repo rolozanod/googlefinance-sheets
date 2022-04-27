@@ -3,7 +3,9 @@ Repo to retrieve historical financial data from Google Finance using a Google Cl
 
 ## REQUIREMENTS!
 A ***free tier*** **Google Cloud Platform account** is enough.
+
 A **project** enabled to **manipulate Google Sheets in Google Drive** needs to be created and configured.
+
 **BigQuery** and **Blob storage** need to be enabled. These are **free** up to XX TB of data.
 
 # SETUP GCP
