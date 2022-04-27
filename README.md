@@ -10,13 +10,13 @@ A **project** enabled to **manipulate Google Sheets in Google Drive** needs to b
 
 # SETUP GCP
 ## CREATE A GOOGLE CLOUD PLATFORM ACCOUNT
-If you do not have a GCP account, [create one now](https://console.cloud.google.com/freetrial/ "Google Cloud Platform link")
+If you do not have a GCP account, [create one now](https://console.cloud.google.com/freetrial/ "Google Cloud Platform link").
 
 ## CREATE A PROJECT
-GCP organizes resources into projects. [Create one now](https://console.cloud.google.com/projectcreate "Project creation link in GCP")
+GCP organizes resources into projects. [Create one now](https://console.cloud.google.com/projectcreate "Project creation link in GCP").
 
 ## CREATE A SERVICE ACCOUNT
-[Configure one now](https://console.cloud.google.com/apis/credentials/serviceaccountkey "Service account creation link in GCP")
+[Configure one now](https://console.cloud.google.com/apis/credentials/serviceaccountkey "Service account creation link in GCP") for the project you just created.
 
 This serivce account will enable
 - Terraform create the architecture needed for the project
