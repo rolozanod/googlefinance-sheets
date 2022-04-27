@@ -22,12 +22,17 @@ This serivce account will enable
 
 [Configure one now](https://console.cloud.google.com/apis/credentials/serviceaccountkey "Service account creation link in GCP") for the project you just created.
 
-1. Create the service account with "Editor" role.
+1. Under `+ Create credentials`, create a service account with "Editor" role, skip user assignment.
 1. Create a new key
     - Under the service account key got to the "Keys" tab and select "Create new key" with JSON "Key Type".
 1. Download the service account key.
 
 Read more about service account keys in [Google's documentation](https://cloud.google.com/iam/docs/creating-managing-service-account-keys).
+
+## ENABLE GOOGLE SHEETS AND GOOGLE DRIVE APIs
+Go to [`APIs and Services`-`Enabled APIs and services`](https://console.cloud.google.com/apis/dashboard "APIs and services managements")
+
+Under `+ ENABLE APIS AND SERVICES`, look for **Google Drive** and **Google Sheets** APIs and enable them.
 
 ## DEPLOY WITH TERRAFORM
 https://learn.hashicorp.com/tutorials/terraform/google-cloud-platform-build
