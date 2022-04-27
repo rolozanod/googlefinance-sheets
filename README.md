@@ -22,6 +22,8 @@ This serivce account will enable
 - Terraform create the architecture needed for the project
 - Python access the resources in GCP needed for the package to work
 
+Read more about service account keys in [Google's documentation](https://cloud.google.com/iam/docs/creating-managing-service-account-keys).
+
 ## DEPLOY WITH TERRAFORM
 https://learn.hashicorp.com/tutorials/terraform/google-cloud-platform-build
 
