@@ -26,6 +26,9 @@ import json
 
 # Scopes needed in GCP to perform actions in spreadsheets, consequently drive is included.
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+# "https://www.googleapis.com/auth/cloud-platform"
+
+# "https://www.googleapis.com/auth/bigquery"
 
 # Mimes to allow the exploration of folders and manipulation of spreadsheets
 mimes = {"folder": "application/vnd.google-apps.folder","sheet": "application/vnd.google-apps.spreadsheet"}
@@ -85,8 +88,8 @@ def google_api_creds(path2json_creds: str, gcp_config_path: str, SCOPES: list=SC
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(path2json_creds, SCOPES)
-            creds = flow.run_local_server(port=0)
+            flow = InstalledAppFlow.from_client_secrets_file(path2json_creds, scopes=SCOPES)
+            creds = flow.run_local_server(port=8080)
         # Save the credentials for the next run
         with open(os.path.join(gcp_config_path, 'token.pickle'), 'wb') as token:
             pickle.dump(creds, token)
@@ -114,7 +117,7 @@ def view_folder(path2json_creds: str, gcp_config_path: str, parent_id: str = Non
     else:
         assert type(parent_id) is str
         results = drive_service.files().list(
-            q="'{}' in parents".format(parent_id),
+            q="'{}' in parents and mimeType = 'application/vnd.google-apps.spreadsheet'".format(parent_id),
             corpora='user',
             pageSize=10,
             fields="nextPageToken, files(id, name, mimeType)",
@@ -128,6 +131,8 @@ def view_folder(path2json_creds: str, gcp_config_path: str, parent_id: str = Non
         print('Files:')
         for item in items:
             print(u'{0}: {1} ({2})'.format(robust_dict_keys(mimes, item['mimeType'], inverse=True), item['name'], item['id']))
+
+    return items
 
 
 def create_folder(path2json_creds: str, gcp_config_path: str, name: str, parent_id: list=[]):
@@ -430,7 +435,9 @@ def google_finance_stocks(fileId: str, tkr: list, initial_date: str, final_date:
                 axis=0
             )
 
-            stocks = stocks.append(df)
+            # append is deprec use concat
+            # stocks = stocks.append(df)
+            stocks = pd.concat([stocks, df], axis=0)
 
     if not stocks.empty:
         stocks['Date'] = pd.to_datetime(stocks['Date'], format="%m/%d/%Y %H:%M:%S")
@@ -471,18 +478,75 @@ def delete_file(fileId: str, path2json_creds: str, gcp_config_path: str):
         pickle.dump(drive_ids, drive_map)
 
 
-def view_drive_map(gcp_config_path: str, return_: bool = False):
-    with open(os.path.join(gcp_config_path, 'GMAP_DRIVE_MAP.pickle'), 'rb') as drive_map:
-        drive_ids = pickle.load(drive_map)
+def get_drive_map(gcp_config_path: str, path2json_creds: str, return_: bool = False):
 
-    if return_:
+    try:
+        with open(os.path.join(gcp_config_path, 'GMAP_DRIVE_MAP.pickle'), 'rb') as drive_map:
+            drive_ids = pickle.load(drive_map)
+
+        if return_:
+            
+            return drive_ids
+
+        else:
+
+            print(drive_ids)
+    
+    except(FileNotFoundError):
+
+        if return_:
+
+            return []
+
+
+def view_drive_map(gcp_config_path: str, path2json_creds: str):
+
+    return_ = True
+
+    drive_map = get_drive_map(gcp_config_path=gcp_config_path, path2json_creds=path2json_creds, return_=return_)
+
+    if not drive_map:
+
+        print("Drive map missing")
+
+        # Check folders in drive
+        items = view_folder(path2json_creds=path2json_creds, gcp_config_path=gcp_config_path)
+
+        # If empty, create the GFS folder
+        if not items:
+            missing_gfs_folder=True
+        else:
+            # Find the gfs_folder
+            found_gfs_folder = [x for x in items if x['name']=='gfs_folder']
+            missing_gfs_folder = not found_gfs_folder
         
-        return drive_ids
+        # Create the folder if it is missing
+        if missing_gfs_folder:
+            print('Creating GFS folder in drive')
+            create_folder(path2json_creds=path2json_creds, gcp_config_path=gcp_config_path, name='gfs_folder')
 
-    else:
+            # Find the gfs_folder
+            items = view_folder(path2json_creds=path2json_creds, gcp_config_path=gcp_config_path)
+            
+        gfs_folder = [x for x in items if x['name']=='gfs_folder'][0]
 
-        print(drive_ids)
+        # Look for the spreadsheet
+        items = view_folder(path2json_creds=path2json_creds, gcp_config_path=gcp_config_path, parent_id=gfs_folder['id'])
+        found_gfs_sheet = [x for x in items if x['name']=='gfs_stocks']
+        missing_gfs_sheet = not found_gfs_sheet
 
+        if (not items) or missing_gfs_folder or missing_gfs_sheet:
+            missing_gfs_sheet=True
+        else:
+            missing_gfs_sheet=False
+
+        if missing_gfs_sheet:
+            print('Creating GFS spreadsheet in folder')
+            create_sheet(path2json_creds=path2json_creds, gcp_config_path=gcp_config_path, name='gfs_stocks', parent_id=[gfs_folder['id']])
+
+    drive_map = get_drive_map(gcp_config_path=gcp_config_path, path2json_creds=path2json_creds, return_=return_)
+
+    return drive_map
 
 # DONE: Upload blob
 # DONE: Move to Bigtable
@@ -491,7 +555,7 @@ def view_drive_map(gcp_config_path: str, return_: bool = False):
 # DONE: Program full procedure to upload data to GCP
 
 
-def upload_stocks2blob(bucket_name: str, table_id: str, stocks_df: pd.DataFrame):
+def upload_stocks2blob(path2json_service: str, bucket_name: str, table_id: str, stocks_df: pd.DataFrame):
     """Uploads a file to the bucket."""
     # bucket_name = "your-bucket-name"
     # source_file_name = "local/path/to/file"
@@ -504,7 +568,7 @@ def upload_stocks2blob(bucket_name: str, table_id: str, stocks_df: pd.DataFrame)
     # table_id = os.environ['GCP_STOCK_TABLE']
     # bucket_name = os.environ['GCP_STOCK_BUCKET']
 
-    storage_client = storage.Client.from_service_account_json(path2json_creds)
+    storage_client = storage.Client.from_service_account_json(path2json_service)
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(table_id)
 
@@ -519,13 +583,13 @@ def upload_stocks2blob(bucket_name: str, table_id: str, stocks_df: pd.DataFrame)
     )
 
 
-def download_blob(bucket_name: str, source_blob_name: str, destination_file_name: str):
+def download_blob(path2json_service: str, bucket_name: str, source_blob_name: str, destination_file_name: str):
     """Downloads a blob from the bucket."""
     # bucket_name = "your-bucket-name"
     # source_blob_name = "storage-object-name"
     # destination_file_name = "local/path/to/file"
 
-    storage_client = storage.Client.from_service_account_json(path2json_creds)
+    storage_client = storage.Client.from_service_account_json(path2json_service)
 
     # bucket_name = os.environ['GCP_STOCK_BUCKET']
 
@@ -545,12 +609,10 @@ def download_blob(bucket_name: str, source_blob_name: str, destination_file_name
     )
 
 
-def gs_stocks(path2json_creds:str, bucket_name:str, table_id:str, fields:str = "*", conds:str = "", stocks_df = True):
+def gs_stocks(path2json_service:str, bucket_name:str = "gfs-bucket", table_id:str = 'stocks', fields:str = "*", conds:str = "", stocks_df = True):
 
     # Construct a BigQuery client object.
-    client = bigquery.Client.from_service_account_json(path2json_creds)
-
-    # table_id = os.environ['GCP_STOCK_TABLE']
+    client = bigquery.Client.from_service_account_json(path2json_service)
 
     # Configure the external data source and query job.
     external_config = bigquery.ExternalConfig("CSV")
@@ -574,6 +636,8 @@ def gs_stocks(path2json_creds:str, bucket_name:str, table_id:str, fields:str = "
 
     query_job = client.query(sql, job_config=job_config)  # Make an API request.
 
+    # print(dir(query_job))
+
     stocks = list(query_job)  # Wait for the job to complete.
 
     if stocks_df:
@@ -583,6 +647,46 @@ def gs_stocks(path2json_creds:str, bucket_name:str, table_id:str, fields:str = "
         stocks = stocks.drop(columns=['IDX'])
     else:
         stocks = pd.DataFrame().from_records(stocks)
+
+    return stocks
+
+
+def gs_stocks_table(path2json_service:str, bucket_name:str = "gfs-bucket", table_id:str = 'stocks', fields:str = "*", conds:str = "", stocks_df = True):
+
+    # Construct a BigQuery client object.
+    client = bigquery.Client.from_service_account_json(path2json_service)
+
+    # TODO(developer): Set table_id to the ID of the table to create.
+    # bucket_name = "gfs-bucket"
+    # table_id = "stocks"
+
+    job_config = bigquery.LoadJobConfig(
+        schema=[
+            bigquery.SchemaField("IDX", "NUMERIC"),
+            bigquery.SchemaField("Date", "DATETIME"),
+            bigquery.SchemaField("Open", "FLOAT64"),
+            bigquery.SchemaField("High", "FLOAT64"),
+            bigquery.SchemaField("Low", "FLOAT64"),
+            bigquery.SchemaField("Close", "FLOAT64"),
+            bigquery.SchemaField("Volume", "FLOAT64"),
+            bigquery.SchemaField("Stock", "STRING"),
+        ],
+        skip_leading_rows=1,
+        # The source format defaults to CSV, so the line below is optional.
+        source_format=bigquery.SourceFormat.CSV,
+    )
+    uri = f"gs://{bucket_name}/{table_id}"
+
+    bq_table_id = "gfs-test1.gfs_ds.stocks"
+
+    load_job = client.load_table_from_uri(
+        uri, bq_table_id, job_config=job_config
+    )  # Make an API request.
+
+    load_job.result()  # Waits for the job to complete.
+
+    stocks = client.get_table(bq_table_id)  # Make an API request.
+    print("Loaded {} rows.".format(stocks.num_rows))
 
     return stocks
 
@@ -618,19 +722,18 @@ def sql_stocks(path2json_creds:str, bucket_name:str, table_id:str, query: str):
 
 
 def retrieve_stocks(
-    fileId: str,
     tkr: list,
     initial_date: str,
     final_date: str,
-    bucket_name: str,
-    table_id: str,
+    path2json_service: str,
     path2json_creds: str,
-    gcp_config_path: str
+    gcp_config_path: str,
+    bucket_name: str = 'gfs-bucket',
+    table_id: str = 'stocks',
     ):
     """
     Main function that retrieves financial data from Google Finance
 
-    fileId: str - 
     tkr: list - list of tickers (stocks, indexes, forex) named exactly as found in Google Finance.
     initial_date: str - initial date formated as "%Y,%m,%d" to retrieve data
     final_date: str - final date formated as "%Y,%m,%d" to retrieve data
@@ -640,6 +743,10 @@ def retrieve_stocks(
     gcp_config_path: str - path that contains the drive map, scopes, and token pickle files.
     """
 
+    # Check drive map file
+    drive_map = view_drive_map(gcp_config_path, path2json_creds)
+    fileId = drive_map[('gfs_stocks', 'sheet')]
+
     open_final_date = str(datetime.strptime(final_date, "%Y,%m,%d") + relativedelta(days=1)).split(" ")[0]
 
     conds = '''WHERE DATE(Date) >= "{i_dt}" AND DATE(Date) <= "{f_dt}" AND Stock in ({stocks})'''.format(
@@ -647,7 +754,7 @@ def retrieve_stocks(
         f_dt=open_final_date.replace(",", "-")[:10],
         stocks="'" + "', '".join(tkr) + "'")
 
-    stocks = gs_stocks(path2json_creds=path2json_creds, bucket_name=bucket_name, table_id=table_id, fields="*", conds=conds)
+    stocks = gs_stocks(path2json_service=path2json_service, bucket_name=bucket_name, table_id=table_id, fields="*", conds=conds)
 
     existing_entries = stocks[["Date", "Stock"]].drop_duplicates()
 
@@ -655,11 +762,23 @@ def retrieve_stocks(
 
     existing_entries["Date"] = pd.to_datetime(existing_entries["DetDate"].astype(str).apply(lambda r: r.split(" ")[0]), format="%Y-%m-%d")
 
-    existing_entries['IDX'] = existing_entries.apply(lambda r: tuple([r['Date'], r['Stock']]), axis=1)
+    if stocks.empty:
 
-    last_date = max(existing_entries.Date)
+        existing_entries = pd.DataFrame(
+            columns=list(existing_entries.columns) + ['IDX']
+        )
 
-    first_date = min(existing_entries.Date)
+        last_date = datetime.strptime(initial_date, '%Y,%m,%d') - relativedelta(days=1)
+
+        first_date = datetime.strptime(initial_date, '%Y,%m,%d') - relativedelta(days=1)
+
+    else:
+    
+        existing_entries['IDX'] = existing_entries.apply(lambda r: tuple([r['Date'], r['Stock']]), axis=1)
+
+        last_date = max(existing_entries.Date)
+
+        first_date = min(existing_entries.Date)
 
     requested_dates = pd.DataFrame(
         {"Date": pd.date_range(
@@ -769,11 +888,13 @@ def retrieve_stocks(
 
                                 print("Data retreived")
 
-                                stocks = stocks.append(goog_stocks).drop_duplicates().reset_index(drop=True)
+                                # append is deprec use concat
+                                # stocks = stocks.append(goog_stocks).drop_duplicates().reset_index(drop=True)
+                                stocks = pd.concat([stocks, goog_stocks], axis=0).drop_duplicates().reset_index(drop=True)
 
-                            if not stocks.empty:
+                            if not goog_stocks.empty:
 
-                                upload_stocks2blob(bucket_name=bucket_name, table_id=table_id, stocks_df=stocks)
+                                upload_stocks2blob(path2json_service=path2json_service, bucket_name=bucket_name, table_id=table_id, stocks_df=goog_stocks)
 
     print('Done')
 
