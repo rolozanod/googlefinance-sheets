@@ -1,6 +1,11 @@
 # googlefinance-sheets
 Repo to retrieve historical financial data from Google Finance using a Google Cloud Computing account connection to the Sheets app.
 
+## USAGE
+**The project needs to be configured on GCP to work, automated configuration is provided in Terraform scripts**
+`from gfs import google_finance`
+`google_finance.retrieve_stocks(*args)`
+
 ## REQUIREMENTS!
 A ***free tier*** **Google Cloud Platform account** is enough.
 

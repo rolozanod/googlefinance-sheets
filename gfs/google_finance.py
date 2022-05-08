@@ -1,5 +1,7 @@
 # py
 
+import pkg_resources
+
 import pandas as pd
 
 from googleapiclient.discovery import build
@@ -15,6 +17,8 @@ import pickle
 import time
 
 from datetime import datetime
+
+import dateutil.parser
 
 from math import ceil
 
@@ -35,6 +39,49 @@ mimes = {"folder": "application/vnd.google-apps.folder","sheet": "application/vn
 
 # Max rows allows per sheet (google sheets limit!)
 max_rows_in_sheet = 500
+
+def terraform_setup(project_id:str,project_env:str,gcp_location:str,gcp_zone:str,service_account_json:str,gcp_bucket_name:str='gfs-bucket',terraform_apply:bool=False)->None:
+    """
+    Creates the setup files and validates with terraform, if prompted, applies changes and creates the GCP architecture
+
+    project_id:str - Name of the project in GCP
+    project_env:str - Tag on GCP to identify the stage of the project (i.e "dev", "qa", "prod", "test")
+    gcp_location:str - Geographical location for GCP resources (https://cloud.google.com/storage/docs/locations)
+    gcp_zone:str - Geographical zone within the location for GCP resources (https://cloud.google.com/storage/docs/locations)
+    gcp_bucket_name:str='gfs-bucket' - Name of the bucket where the data will be persisted (default='gfs-bucket')
+    service_account_json:str - Path to the service account json file
+    terraform_apply:bool=False - Argument to apply the configuration for the project on GCP (default=False)
+    """
+
+    stream = pkg_resources.resource_stream(__name__, 'main_tf.sc')
+
+    source_code = stream.read().decode("utf-8")
+
+    with open('main.tf', 'w') as f:
+        f.write(
+            source_code.format(
+                PROJECT_ID=project_id,
+                PROJECT_ENV=project_env,
+                GCP_LOCATION=gcp_location,
+                GCP_ZONE=gcp_zone,
+                GCP_BUCKET_NAME=gcp_bucket_name,
+                SERVICE_ACCOUNT_JSON=service_account_json
+            )
+        )
+
+    stream = pkg_resources.resource_stream(__name__, 'stocks.sc')
+
+    source_code = stream.read().decode("utf-8")
+
+    with open('stocks', 'w') as f:
+        f.write(source_code)
+
+    terraform_env_exists = os.path.exists('.terraform')
+    if not terraform_env_exists:
+        os.system("terraform init")
+    os.system("terraform validate")
+    if terraform_apply:
+        os.system("terraform apply")
 
 
 def get_env_vars(var: str, envvar: str):
@@ -735,13 +782,22 @@ def retrieve_stocks(
     Main function that retrieves financial data from Google Finance
 
     tkr: list - list of tickers (stocks, indexes, forex) named exactly as found in Google Finance.
-    initial_date: str - initial date formated as "%Y,%m,%d" to retrieve data
-    final_date: str - final date formated as "%Y,%m,%d" to retrieve data
+    initial_date: str - initial date to retrieve data, preferably formated as "%Y,%m,%d"
+    final_date: str - final date to retrieve data, preferably formated as "%Y,%m,%d"
+    path2json_service: str - path to the json file with the service key
+    path2json_creds: str - path to the json file with the OAuth ID
+    gcp_config_path: str - path that contains the drive map, scopes, and token pickle files.
     bucket_name: str - name of the bucket that stores the data already retrieved
     table_id: str - name of the table in bigquery used to place the job to retrieve data
-    path2json_creds: str - path to the json file with the service key
-    gcp_config_path: str - path that contains the drive map, scopes, and token pickle files.
     """
+
+    if not ',' in initial_date:
+        initial_date = dateutil.parser.parse(initial_date)
+        initial_date = datetime.strftime(initial_date, "%Y,%m,%d")
+
+    if not ',' in final_date:
+        final_date = dateutil.parser.parse(final_date)
+        final_date = datetime.strftime(final_date, "%Y,%m,%d")
 
     # Check drive map file
     drive_map = view_drive_map(gcp_config_path, path2json_creds)
