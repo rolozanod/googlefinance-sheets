@@ -575,6 +575,10 @@ def view_drive_map(gcp_config_path: str, path2json_creds: str):
 
             # Find the gfs_folder
             items = view_folder(path2json_creds=path2json_creds, gcp_config_path=gcp_config_path)
+        else:
+            drive_ids={(found_gfs_folder[0]['name'], 'folder'): found_gfs_folder[0]['id']}
+            with open(os.path.join(gcp_config_path, 'GMAP_DRIVE_MAP.pickle'), 'wb') as drive_map:
+                pickle.dump(drive_ids, drive_map)
             
         gfs_folder = [x for x in items if x['name']=='gfs_folder'][0]
 
@@ -591,6 +595,12 @@ def view_drive_map(gcp_config_path: str, path2json_creds: str):
         if missing_gfs_sheet:
             print('Creating GFS spreadsheet in folder')
             create_sheet(path2json_creds=path2json_creds, gcp_config_path=gcp_config_path, name='gfs_stocks', parent_id=[gfs_folder['id']])
+        else:
+            with open(os.path.join(gcp_config_path, 'GMAP_DRIVE_MAP.pickle'), 'rb') as drive_map:
+                drive_ids = pickle.load(drive_map)
+            drive_ids.update({(found_gfs_sheet[0]['name'], 'sheet'): found_gfs_sheet[0]['id']})
+            with open(os.path.join(gcp_config_path, 'GMAP_DRIVE_MAP.pickle'), 'wb') as drive_map:
+                pickle.dump(drive_ids, drive_map)
 
     drive_map = get_drive_map(gcp_config_path=gcp_config_path, path2json_creds=path2json_creds, return_=return_)
 

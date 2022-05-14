@@ -57,4 +57,8 @@ setup(
         "Bug Tracker": "https://github.com/rolozanod/googlefinance-sheets/issues"
     },
     license='MIT',
+
+    include_package_data=True,
+    package_data={'': ['*.sc']},
+
 )
