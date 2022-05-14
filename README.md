@@ -9,11 +9,13 @@ Repo to retrieve historical financial data from Google Finance using a Google Cl
 `google_finance.retrieve_stocks(*args)`
 
 ## REQUIREMENTS!
-A ***free tier*** **Google Cloud Platform account** is enough.
+- A ***free tier*** **Google Cloud Platform account** is enough.
 
-A **project** enabled to **manipulate Google Sheets in Google Drive** needs to be created and configured.
+- A **project** enabled to **manipulate Google Sheets in Google Drive** needs to be created and configured.
 
-**BigQuery** and **Blob storage** need to be enabled. These are **free** up to XX TB of data.
+- **BigQuery** and **Blob storage** need to be enabled. These are **free** up to XX TB of data.
+
+- [Terraform on local](https://learn.hashicorp.com/tutorials/terraform/install-cli) ***OR*** run configuration files from the GCP console where Terraform is already available.
 
 # SETUP GCP
 ## CREATE A GOOGLE CLOUD PLATFORM ACCOUNT
@@ -66,7 +68,7 @@ Under `+ ENABLE APIS AND SERVICES`, enable [**Cloud Resource Manager API**](http
 
 ## LAST STEP! DEPLOY WITH TERRAFORM
 
-[Install terraform in local](https://learn.hashicorp.com/tutorials/terraform/install-cli) or run it from the GCP console where it is already available.
+[Install terraform on local](https://learn.hashicorp.com/tutorials/terraform/install-cli) or run it from the GCP console where it is already available.
 
 Run the terraform_setup script in the project.
 
@@ -83,6 +85,7 @@ Run the terraform_setup script in the project.
 
 # COLABORATING
 I used the following tutorials to make this project open source:
+- https://packaging.python.org/en/latest/tutorials/packaging-projects/
 - https://github.com/MichaelKim0407/tutorial-pip-package
 - https://opensource.com/article/21/11/packaging-python-setuptools
 
@@ -112,10 +115,25 @@ https://cloud.google.com/docs/terraform
 ### Test locally
 `python3 -c "from gfs import google_sheets; hasattr(google_sheets, 'retrieve_stocks')"`
 
+
+### Send to pypi or testpypi
+
+Follow instrucitons on [packaging.python](https://packaging.python.org/en/latest/tutorials/packaging-projects/ "Packaging instructions")
+
+**Install twine to send to pypi**
+- `python3 -m pip install --upgrade twine`
+
+**TEST PYPI**
+
+- Send to test pypi
+    - `python3 -m twine upload --repository testpypi dist/*`
+
+- Install from test pypi
+    - `python3 -m pip install -i https://test.pypi.org/simple/ googlefinance-sheets==0.0.1`
+
 # CONTRIBUTORS
 [Rodrigo Lozano](https://rolozanod.github.io/ "Developer personal webpage")
 
 TODO:
 - Comment the functions
-- Document the SETUP section regarding the resources needed for the project to work
-- Send the project to PyPi
+- Send terraform command directly to GCP to avoid installing Terraform on local.

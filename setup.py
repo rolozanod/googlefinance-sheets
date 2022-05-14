@@ -60,5 +60,13 @@ setup(
 
     include_package_data=True,
     package_data={'': ['*.sc']},
+    classifiers=[
+        'Development Status :: 1 - Planning',
+        'Natural Language :: English',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python :: 3 :: Only',
+        'Topic :: Office/Business :: Financial :: Investment',
+        'Topic :: Software Development :: Libraries :: Python Modules'
+    ]
 
 )
