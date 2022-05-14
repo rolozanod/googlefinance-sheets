@@ -38,7 +38,7 @@ This serivce account will enable Terraform create the architecture needed for th
 Read more about service account keys in [Google's documentation](https://cloud.google.com/iam/docs/creating-managing-service-account-keys).
 
 ## CREATE AN OAUTH CLIENT ID FOR GFS (GOOGLE FINANCE SHEETS)
-This client will enable Python access the resources in GCP needed for the package to work
+This client will enable Python access the Sheets, Drive and BigQuery resources in GCP needed for the package to work
 
 [Configure one now](https://console.cloud.google.com/apis/credentials/oauthclient "OAuth client ID creation link in GCP") for the project you just created.
 
@@ -64,33 +64,30 @@ Under `+ ENABLE APIS AND SERVICES`, enable [**Cloud Resource Manager API**](http
 
 ## DEPLOY WITH TERRAFORM
 
-#### select a location from https://cloud.google.com/storage/docs/locations
-Open the `terraform.auto.vars` file. Define the following variables:
-    * project
-    * environment
-    * project_id
-    * gcp_service_account_credentials_file
-    * gcp_location
-    * gcp_zone
-    * gcp_bucket_name
-
-Run the following commands to configure to GCP proyect to retrieve Google Finance data from the Google Sheets API.
-    * `terraform init`
-    * `terraform fmt`
-    * `terraform validate`
-    * `terraform apply`
+[Install terraform in local](https://learn.hashicorp.com/tutorials/terraform/install-cli) or run it from the GCP console where it is already available.
+***Last step!***
+Run the terraform_setup script in the project.
+    * `google_finance.terraform_setup(
+            project_id=<project_id>,
+            project_env=<environment>,
+            gcp_location=<gcp_location>, select a location from https://cloud.google.com/storage/docs/locations
+            gcp_zone=<gcp_zone>, select a location from https://cloud.google.com/storage/docs/locations
+            gcp_bucket_name=<gcp_bucket_name>,
+            service_account_json=<path/to/service_account.json>
+        )`
         * Type `yes` when prompted to accept the configuration
-
-https://learn.hashicorp.com/tutorials/terraform/google-cloud-platform-build
-
-https://cloud.google.com/docs/terraform/get-started-with-terraform
-
-https://cloud.google.com/docs/terraform
 
 # COLABORATING
 I used the following tutorials to make this project open source:
 - https://github.com/MichaelKim0407/tutorial-pip-package
 - https://opensource.com/article/21/11/packaging-python-setuptools
+
+#### Useful Terraform doc
+https://learn.hashicorp.com/tutorials/terraform/google-cloud-platform-build
+
+https://cloud.google.com/docs/terraform/get-started-with-terraform
+
+https://cloud.google.com/docs/terraform
 
 ## CREATE A PYTHON PIP MODULE
 ### Create virtual environment

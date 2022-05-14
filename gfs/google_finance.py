@@ -40,6 +40,7 @@ mimes = {"folder": "application/vnd.google-apps.folder","sheet": "application/vn
 # Max rows allows per sheet (google sheets limit!)
 max_rows_in_sheet = 500
 
+
 def terraform_setup(project_id:str,project_env:str,gcp_location:str,gcp_zone:str,service_account_json:str,gcp_bucket_name:str='gfs-bucket',terraform_apply:bool=False)->None:
     """
     Creates the setup files and validates with terraform, if prompted, applies changes and creates the GCP architecture
