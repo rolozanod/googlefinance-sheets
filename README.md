@@ -72,17 +72,11 @@ Run the terraform_setup script in the project.
 
 (
     google_finance.terraform_setup(
-
         project_id=<project_id>,
-
         project_env=<environment>,
-
         gcp_location=<gcp_location>, select a location from https://cloud.google.com/storage/docs/locations
-
         gcp_zone=<gcp_zone>, select a location from https://cloud.google.com/storage/docs/locations
-
         gcp_bucket_name=<gcp_bucket_name>,
-
         service_account_json=<path/to/service_account.json>
     )
 )
