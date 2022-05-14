@@ -84,7 +84,6 @@ Run the terraform_setup script in the project.
         gcp_bucket_name=<gcp_bucket_name>,
 
         service_account_json=<path/to/service_account.json>
-
     )
 )
 
