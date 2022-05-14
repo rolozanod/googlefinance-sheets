@@ -71,6 +71,7 @@ Under `+ ENABLE APIS AND SERVICES`, enable [**Cloud Resource Manager API**](http
 Run the terraform_setup script in the project.
 
 (
+    
     google_finance.terraform_setup(
         project_id=<project_id>,
         project_env=<environment>,
@@ -79,6 +80,7 @@ Run the terraform_setup script in the project.
         gcp_bucket_name=<gcp_bucket_name>,
         service_account_json=<path/to/service_account.json>
     )
+
 )
 
 * Type `yes` when prompted to accept the configuration
