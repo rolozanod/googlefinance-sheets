@@ -69,15 +69,22 @@ Under `+ ENABLE APIS AND SERVICES`, enable [**Cloud Resource Manager API**](http
 [Install terraform in local](https://learn.hashicorp.com/tutorials/terraform/install-cli) or run it from the GCP console where it is already available.
 
 Run the terraform_setup script in the project.
-* `google_finance.terraform_setup(
+google_finance.terraform_setup(
+
         project_id=<project_id>,
+
         project_env=<environment>,
+
         gcp_location=<gcp_location>, select a location from https://cloud.google.com/storage/docs/locations
+
         gcp_zone=<gcp_zone>, select a location from https://cloud.google.com/storage/docs/locations
+
         gcp_bucket_name=<gcp_bucket_name>,
+
         service_account_json=<path/to/service_account.json>
-    )`
-    * Type `yes` when prompted to accept the configuration
+
+    )
+* Type `yes` when prompted to accept the configuration
 
 # COLABORATING
 I used the following tutorials to make this project open source:
