@@ -3,7 +3,9 @@ Repo to retrieve historical financial data from Google Finance using a Google Cl
 
 ## USAGE
 **The project needs to be configured on GCP to work, automated configuration is provided in Terraform scripts**
+
 `from gfs import google_finance`
+
 `google_finance.retrieve_stocks(*args)`
 
 ## REQUIREMENTS!
@@ -62,10 +64,10 @@ Go to [`APIs and Services`-`Enabled APIs and services`](https://console.cloud.go
 
 Under `+ ENABLE APIS AND SERVICES`, enable [**Cloud Resource Manager API**](https://console.cloud.google.com/apis/library/cloudresourcemanager.googleapis.com).
 
-## DEPLOY WITH TERRAFORM
+## LAST STEP! DEPLOY WITH TERRAFORM
 
 [Install terraform in local](https://learn.hashicorp.com/tutorials/terraform/install-cli) or run it from the GCP console where it is already available.
-***Last step!***
+
 Run the terraform_setup script in the project.
     * `google_finance.terraform_setup(
             project_id=<project_id>,
