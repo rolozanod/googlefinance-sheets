@@ -109,8 +109,6 @@ https://cloud.google.com/docs/terraform
 `python3 -m build`
 `python3 -m pip install dist/googlefinance_sheets-<version>.tar.gz`
 * The `version` is defined in `__init__.py`
-- Using setuptools with setup file
-`pip install -e .[dev]`
 
 ### Test locally
 `python3 -c "from gfs import google_finance; hasattr(google_finance, 'retrieve_stocks')"`
