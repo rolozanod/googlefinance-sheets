@@ -1,5 +1,5 @@
 # googlefinance-sheets
-Repo to retrieve historical financial data from Google Finance using a Google Cloud Computing account connection to the Sheets app.
+Repo to retrieve historical financial data from Google Finance using a Google Cloud Platform account connection to the Sheets app.
 
 ## USAGE
 **The project needs to be configured on GCP to work, automated configuration is provided in Terraform scripts**
