@@ -113,7 +113,7 @@ https://cloud.google.com/docs/terraform
 `pip install -e .[dev]`
 
 ### Test locally
-`python3 -c "from gfs import google_sheets; hasattr(google_sheets, 'retrieve_stocks')"`
+`python3 -c "from gfs import google_finance; hasattr(google_finance, 'retrieve_stocks')"`
 
 
 ### Send to pypi or testpypi
@@ -129,7 +129,7 @@ Follow instrucitons on [packaging.python](https://packaging.python.org/en/latest
     - `python3 -m twine upload --repository testpypi dist/*`
 
 - Install from test pypi
-    - `python3 -m pip install -i https://test.pypi.org/simple/ googlefinance-sheets==0.0.1`
+    - `python3 -m pip install -i https://test.pypi.org/simple/ googlefinance-sheets==<version>`
 
 # CONTRIBUTORS
 [Rodrigo Lozano](https://rolozanod.github.io/ "Developer personal webpage")
