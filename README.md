@@ -127,7 +127,7 @@ Follow instrucitons on [packaging.python](https://packaging.python.org/en/latest
     - `python3 -m twine upload --repository testpypi dist/*`
 
 - Install from test pypi
-    - `python3 -m pip install -i https://test.pypi.org/simple/ googlefinance-sheets==<version>`
+    - `python3 -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ googlefinance-sheets`
 
 # CONTRIBUTORS
 [Rodrigo Lozano](https://rolozanod.github.io/ "Developer personal webpage")

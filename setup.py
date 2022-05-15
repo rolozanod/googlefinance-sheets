@@ -23,6 +23,7 @@ extra_dev=[
 setup(
     name='googlefinance_sheets',
     version=__version__,
+    python_requires=">=3.8",
 
     description='Google Finance data package using Google Sheets and Google Cloud Platform',
     long_description=long_description,
@@ -35,6 +36,8 @@ setup(
     packages=find_packages(),
     # packages=['gfs'],
     install_requires=[
+        'setuptools',
+        'wheel',
         'pandas',
         'google-api-core',
         'google-api-python-client',
