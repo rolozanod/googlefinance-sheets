@@ -4,6 +4,10 @@ Repo to retrieve historical financial data from Google Finance using a Google Cl
 ## USAGE
 **The project needs to be configured on GCP to work, automated configuration is provided in Terraform scripts**
 
+***While the project is in developement and hosted on the test pypi index, the installation needs the argument for both test and real pypi indices.***
+
+`python3 -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ googlefinance-sheets`
+
 `from gfs import google_finance`
 
 `google_finance.retrieve_stocks(*args)`
