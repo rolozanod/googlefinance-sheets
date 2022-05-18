@@ -810,6 +810,8 @@ def retrieve_stocks(
         final_date = dateutil.parser.parse(final_date)
         final_date = datetime.strftime(final_date, "%Y,%m,%d")
 
+    assert final_date >= initial_date, f"final_date must be greater or equal than initial_date, but received {final_date} which is earlier than {initial_date}"
+
     # Check drive map file
     drive_map = view_drive_map(gcp_config_path, path2json_creds)
     fileId = drive_map[('gfs_stocks', 'sheet')]
