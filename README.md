@@ -110,8 +110,11 @@ https://cloud.google.com/docs/terraform
 
 ### Install locally
 - Using build with toml file and setup file (preferred)
+
 `python3 -m build`
+
 `python3 -m pip install dist/googlefinance_sheets-<version>.tar.gz`
+
 * The `version` is defined in `__init__.py`
 
 ### Test locally
