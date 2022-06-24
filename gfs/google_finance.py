@@ -41,7 +41,7 @@ mimes = {"folder": "application/vnd.google-apps.folder","sheet": "application/vn
 max_rows_in_sheet = 500
 
 
-def terraform_setup(project_id:str,project_env:str,gcp_location:str,gcp_zone:str,service_account_json:str,gcp_bucket_name:str='gfs-bucket',terraform_apply:bool=False)->None:
+def generate_setup_files(project_id:str,project_env:str,gcp_location:str,gcp_zone:str,service_account_json:str,gcp_bucket_name:str='gfs-bucket',terraform_apply:bool=False)->None:
     """
     Creates the setup files and validates with terraform, if prompted, applies changes and creates the GCP architecture
 
@@ -54,6 +54,7 @@ def terraform_setup(project_id:str,project_env:str,gcp_location:str,gcp_zone:str
     terraform_apply:bool=False - Argument to apply the configuration for the project on GCP (default=False)
     """
 
+    # Terraform file
     stream = pkg_resources.resource_stream(__name__, 'main_tf.sc')
 
     source_code = stream.read().decode("utf-8")
@@ -70,12 +71,55 @@ def terraform_setup(project_id:str,project_env:str,gcp_location:str,gcp_zone:str
             )
         )
 
+    # Stocks init file
     stream = pkg_resources.resource_stream(__name__, 'stocks.sc')
 
     source_code = stream.read().decode("utf-8")
 
     with open('stocks', 'w') as f:
         f.write(source_code)
+
+    # Manual setup instructions
+    stream = pkg_resources.resource_stream(__name__, 'manual_setup.sc')
+
+    source_code = stream.read().decode("utf-8")
+
+    with open(service_account_json) as f: 
+        json_config = json.load(f)
+
+    client_email = json_config['client_email']
+
+    cwd = os.getcwd()
+
+    with open('manual_setup.txt', 'w') as f:
+        f.write(
+            source_code.format(
+                PROJECT_ID=project_id,
+                PROJECT_ENV=project_env,
+                GCP_LOCATION=gcp_location,
+                GCP_ZONE=gcp_zone,
+                GCP_BUCKET_NAME=gcp_bucket_name,
+                SERVICE_ACCOUNT_JSON=service_account_json,
+                CLIENT_EMAIL=client_email,
+                CWD=cwd
+            )
+        )
+
+
+def terraform_setup(project_id:str,project_env:str,gcp_location:str,gcp_zone:str,service_account_json:str,gcp_bucket_name:str='gfs-bucket',terraform_apply:bool=False)->None:
+    """
+    Creates the setup files and validates with terraform, if prompted, applies changes and creates the GCP architecture
+
+    project_id:str - Name of the project in GCP
+    project_env:str - Tag on GCP to identify the stage of the project (i.e "dev", "qa", "prod", "test")
+    gcp_location:str - Geographical location for GCP resources (https://cloud.google.com/storage/docs/locations)
+    gcp_zone:str - Geographical zone within the location for GCP resources (https://cloud.google.com/storage/docs/locations)
+    gcp_bucket_name:str='gfs-bucket' - Name of the bucket where the data will be persisted (default='gfs-bucket')
+    service_account_json:str - Path to the service account json file
+    terraform_apply:bool=False - Argument to apply the configuration for the project on GCP (default=False)
+    """
+
+    generate_setup_files(project_id=project_id,project_env=project_env,gcp_location=gcp_location,gcp_zone=gcp_zone,service_account_json=service_account_json,gcp_bucket_name=gcp_bucket_name,terraform_apply=terraform_apply)
 
     terraform_env_exists = os.path.exists('.terraform')
     if not terraform_env_exists:

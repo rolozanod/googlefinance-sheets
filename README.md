@@ -70,7 +70,10 @@ Go to [`APIs and Services`-`Enabled APIs and services`](https://console.cloud.go
 
 Under `+ ENABLE APIS AND SERVICES`, enable [**Cloud Resource Manager API**](https://console.cloud.google.com/apis/library/cloudresourcemanager.googleapis.com).
 
-## LAST STEP! DEPLOY WITH TERRAFORM
+## LAST STEP! BUILD GCP COMPONENTS
+***Two options:*** **automated deploy with Terraform** or **manual deploy in GCP**
+
+### AUTOMATED DEPLOY WITH TERRAFORM
 
 [Install terraform on local](https://learn.hashicorp.com/tutorials/terraform/install-cli) or run it from the GCP console where it is already available.
 
@@ -86,6 +89,20 @@ Run the terraform_setup script in the project.
     )
 
 * Type `yes` when prompted to accept the configuration
+
+### MANUAL DEPLOY IN GCP
+
+Generate the setup files and instructions (manual_setup.txt).
+
+    google_finance.generate_setup_files(
+        project_id=<project_id>,
+        project_env=<environment>,
+        gcp_location=<gcp_location>, select a location from https://cloud.google.com/storage/docs/locations
+        gcp_zone=, select a location from https://cloud.google.com/storage/docs/locations
+        service_account_json=<path/to/service_account.json>,
+        gcp_bucket_name=<gcp_bucket_name>
+        )
+
 
 # COLABORATING
 I used the following tutorials to make this project open source:
